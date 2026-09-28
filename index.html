@@ -124,6 +124,7 @@ function atualizarJogador(t){
     jogador.vx=0; jogador.vy=0;
     atirar();
   }
+  if(t[' ']) atirar();
   jogador.vx*=at; jogador.vy*=at;
   jogador.x=Math.max(20,Math.min(W-20,jogador.x+jogador.vx));
   jogador.y=Math.max(20,Math.min(H-20,jogador.y+jogador.vy));
@@ -221,7 +222,7 @@ novoJogo();
 
 window.addEventListener('keydown',e=>{
   teclas[e.key]=true;
-  if(e.key===' '){ e.preventDefault(); if(!fimDeJogo) atirar(); }
+  if(e.key===' '){ e.preventDefault(); }
   if(e.key==='Enter' && fimDeJogo) novoJogo();
   if(['1','2','3','4'].includes(e.key)){
     const idx=parseInt(e.key)-1;
