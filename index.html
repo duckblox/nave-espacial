@@ -17,7 +17,7 @@
 <body>
 <div id="wrap">
   <canvas id="jogo" width="900" height="650"></canvas>
-  <div id="dica">Setas/WASD move · espaço, clique ou toque atira · teclas 1-4 trocam de nave (quando desbloqueada)</div>
+  <div id="dica">Celular: toque e arraste para mover (atira sozinho) · Teclado: setas/WASD move, espaço atira, 1-4 trocam de nave</div>
 </div>
 <script>
 (function(){
@@ -118,6 +118,12 @@ function atualizarJogador(t){
   if(t['ArrowRight']||t['d']) jogador.vx+=ac;
   if(t['ArrowUp']||t['w']) jogador.vy-=ac;
   if(t['ArrowDown']||t['s']) jogador.vy+=ac;
+  if(toque){
+    jogador.x+=(toque.x-jogador.x)*0.2;
+    jogador.y+=(toque.y-70-jogador.y)*0.2;
+    jogador.vx=0; jogador.vy=0;
+    atirar();
+  }
   jogador.vx*=at; jogador.vy*=at;
   jogador.x=Math.max(20,Math.min(W-20,jogador.x+jogador.vx));
   jogador.y=Math.max(20,Math.min(H-20,jogador.y+jogador.vy));
@@ -226,8 +232,21 @@ window.addEventListener('keydown',e=>{
   }
 });
 window.addEventListener('keyup',e=>{ teclas[e.key]=false; });
+let toque=null;
+function posToque(t){
+  const r=canvas.getBoundingClientRect();
+  return {x:(t.clientX-r.left)*W/r.width, y:(t.clientY-r.top)*H/r.height};
+}
 canvas.addEventListener('mousedown',()=>{ if(fimDeJogo) novoJogo(); else atirar(); });
-canvas.addEventListener('touchstart',e=>{ e.preventDefault(); if(fimDeJogo) novoJogo(); else atirar(); },{passive:false});
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(fimDeJogo){ novoJogo(); return; }
+  toque=posToque(e.touches[0]);
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{ e.preventDefault(); if(e.touches.length) toque=posToque(e.touches[0]); },{passive:false});
+const fimToque=e=>{ e.preventDefault(); if(!e.touches.length) toque=null; };
+canvas.addEventListener('touchend',fimToque,{passive:false});
+canvas.addEventListener('touchcancel',fimToque,{passive:false});
 
 function texto(txt,tam,cor,x,y){
   ctx.font=`bold ${tam}px system-ui,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
