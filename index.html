@@ -17,7 +17,7 @@
 <body>
 <div id="wrap">
   <canvas id="jogo" width="900" height="650"></canvas>
-  <div id="dica">Celular: toque e arraste para mover (atira sozinho) · Teclado: setas/WASD move, espaço atira, 1-4 trocam de nave</div>
+  <div id="dica">Celular: toque e arraste para mover (atira sozinho) · Teclado: setas/WASD move, espaço atira, F tiro automático, 1-4 trocam de nave</div>
 </div>
 <script>
 (function(){
@@ -124,7 +124,7 @@ function atualizarJogador(t){
     jogador.vx=0; jogador.vy=0;
     atirar();
   }
-  if(t[' ']) atirar();
+  if(t[' ']||mouseAtivo||autoTiro) atirar();
   jogador.vx*=at; jogador.vy*=at;
   jogador.x=Math.max(20,Math.min(W-20,jogador.x+jogador.vx));
   jogador.y=Math.max(20,Math.min(H-20,jogador.y+jogador.vy));
@@ -223,6 +223,7 @@ novoJogo();
 window.addEventListener('keydown',e=>{
   teclas[e.key]=true;
   if(e.key===' '){ e.preventDefault(); }
+  if(e.key==='f'||e.key==='F') autoTiro=!autoTiro;
   if(e.key==='Enter' && fimDeJogo) novoJogo();
   if(['1','2','3','4'].includes(e.key)){
     const idx=parseInt(e.key)-1;
@@ -233,12 +234,13 @@ window.addEventListener('keydown',e=>{
   }
 });
 window.addEventListener('keyup',e=>{ teclas[e.key]=false; });
-let toque=null;
+let toque=null, mouseAtivo=false, autoTiro=false;
 function posToque(t){
   const r=canvas.getBoundingClientRect();
   return {x:(t.clientX-r.left)*W/r.width, y:(t.clientY-r.top)*H/r.height};
 }
-canvas.addEventListener('mousedown',()=>{ if(fimDeJogo) novoJogo(); else atirar(); });
+canvas.addEventListener('mousedown',()=>{ if(fimDeJogo) novoJogo(); else mouseAtivo=true; });
+window.addEventListener('mouseup',()=>{ mouseAtivo=false; });
 canvas.addEventListener('touchstart',e=>{
   e.preventDefault();
   if(fimDeJogo){ novoJogo(); return; }
@@ -328,6 +330,7 @@ function loop(){
 
   texto(`PONTOS: ${pontuacao}`,26,'#5aff8c',120,30);
   texto(`FASE ${faseJogo}`,18,'#ffd23c',110,58);
+  texto(`Tiro automático [F]: ${autoTiro?'LIGADO':'desligado'}`,14,autoTiro?'#50dcff':'#f0f0fa',120,82);
   if(!fimDeJogo) texto('❤'.repeat(Math.max(0,jogador.vidas)),26,'#ff4646',W-90,30);
   if(bannerFase>0) texto(`FASE ${faseJogo}!`,54,'#ffd23c',W/2,H/2-120);
   if(bannerSkin>0) texto(bannerSkinTxt,22,'#5aff8c',W/2,100);
